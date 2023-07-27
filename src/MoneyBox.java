@@ -77,7 +77,6 @@ public class MoneyBox {
                 optimalChange.add(0);
             }
         }
-
         Collections.reverse(optimalChange);
         if (remainingAmount == 0){
             return optimalChange;

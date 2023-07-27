@@ -146,8 +146,6 @@ public class VendingMachine {
                             }
                         }
                     }
-                } else {
-                    System.out.println("Insufficient change, please try again.");
                 }
             } else {
                 System.out.println("Insufficient payment, please enter a higher amount.");
@@ -204,10 +202,8 @@ public class VendingMachine {
      * @return the list of denominations representing the change
      */
     public ArrayList<Integer> getChange(int amount) {
-        ArrayList<Integer> change = new ArrayList<Integer>();
-        change = moneyBox.getOptimalChange(amount);
-        return change;
-
+        ArrayList<Integer> changeList = this.moneyBox.getOptimalChange(amount);
+        return (changeList != null) ? changeList : new ArrayList<>();
     }
 
     /**

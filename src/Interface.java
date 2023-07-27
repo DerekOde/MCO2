@@ -10,12 +10,13 @@ public class Interface {
     /**
      * Constructs an Interface object.
      */
-    public Interface(){}
+    public Interface() {
+    }
 
     /**
      * Creates a new vending machine by prompting the user for the number of slots and adding items to the slots.
      */
-    public void createVendingMachine(){
+    public void createVendingMachine() {
         Scanner scanner = new Scanner(System.in);
         this.currentMachine = new VendingMachine();
         int slotCount = 0;
@@ -79,15 +80,14 @@ public class Interface {
                 }
             }
 
-            if (!this.currentMachine.addItem(name, calories, price)){
+            if (!this.currentMachine.addItem(name, calories, price)) {
                 System.out.println("Item could not be added because it is either a duplicate item or the vending machine is full, please try again.");
-            }
-            else{
+            } else {
                 System.out.println("Item added successfully!");
             }
             System.out.println("Would you like to add another item? (y/n) ");
             String input = scanner.nextLine();
-            if (input.equals("n")){
+            if (input.equals("n")) {
                 break;
             }
         }
@@ -121,53 +121,54 @@ public class Interface {
     public void testFeatures() {
         Scanner scanner = new Scanner(System.in);
         String input;
+
         while (true) {
             System.out.println("Please select an option:");
             System.out.println("1. Purchase an item from the vending machine");
             System.out.println("2. Exit");
             input = scanner.nextLine();
+
             if (input.equals("1")) {
                 this.currentMachine.displayItems();
                 System.out.println("Please enter the name of the item you would like to purchase (Press 1 to exit):");
                 String name = scanner.nextLine();
+
                 while (!this.currentMachine.doesItemExist(name) && !name.equals("1")) {
                     System.out.println("Invalid item name, please try again:");
                     name = scanner.nextLine();
                 }
-                int payment;
+
                 if (name.equals("1")) {
                     continue;
-                } else {
-                    System.out.println("Cost of " + name + ": " + this.currentMachine.getItemPrice(name));
-                    System.out.println("Please enter your payment amount: ");
-                    payment = scanner.nextInt();
-                    scanner.nextLine();
-                    while (payment < this.currentMachine.getItemPrice(name)) {
-                        System.out.println("Insufficient funds, please enter a payment amount greater than or equal to " + this.currentMachine.getItemPrice(name) + ":");
+                }
+
+                double price = this.currentMachine.getItemPrice(name);
+                System.out.println("Cost of " + name + ": " + price);
+
+                int payment;
+                boolean paymentValid = false;
+
+                while (!paymentValid) {
+                    try {
+                        System.out.println("Please enter your payment amount: ");
                         payment = scanner.nextInt();
                         scanner.nextLine();
-                    }
-                    if(this.currentMachine.purchaseItem(name, payment)){
-                        System.out.println("Purchase successful! Enjoy your " + name + ".");
-                    }
-                }
-                int change = payment - (int) this.currentMachine.getItemPrice(name);
-                ArrayList<Integer> changeList = this.currentMachine.getChange(change);
-                ArrayList<Integer> denominations = this.currentMachine.getMoneyBox().getAvailableDenominations();
-                //check if changeList mapped to denominations is equal to change
-                int total = 0;
-                for (int i = 0; i < changeList.size(); i++) {
-                    total += changeList.get(i) * denominations.get(i);
-                }
-                if (total == change) {
-                    System.out.println("Your change is: ");
-                    for (int i = 0; i < changeList.size(); i++) {
-                        if (changeList.get(i) != 0) {
-                            System.out.println(changeList.get(i) + " " + denominations.get(i) + " peso bills");
+                        if (payment < price) {
+                            System.out.println("Insufficient funds, please enter a payment amount greater than or equal to " + price + ":");
+                        } else {
+                            paymentValid = true;
+                            if (this.currentMachine.purchaseItem(name, payment)) {
+                                System.out.println("Purchase successful! Enjoy your " + name + ".");
+                                this.currentMachine.displayMoneyBox();
+                            } else {
+                                System.out.println("Insufficient funds. Please enter a payment amount greater than or equal to " + price + ":");
+                                paymentValid = false;
+                            }
                         }
+                    } catch (InputMismatchException e) {
+                        System.out.println("Invalid input. Please enter a valid payment amount.");
+                        scanner.nextLine(); // Consume the invalid input to avoid infinite loop
                     }
-                } else {
-                    System.out.println("Insufficient change, please try again.");
                 }
             } else if (input.equals("2")) {
                 System.out.println("Goodbye!");
@@ -236,7 +237,7 @@ public class Interface {
                 }
             } else if (input.equals("3")) {
                 this.currentMachine.displayMoneyBox();
-                System.out.println("Please enter the amount of money you would like to collect (Press 1 to exit):");
+                System.out.println("Please enter the amount of money you would like to collect (Press 0 to exit):");
                 int amount = scanner.nextInt();
                 scanner.nextLine();
                 while (amount < 0) {
@@ -244,21 +245,29 @@ public class Interface {
                     amount = scanner.nextInt();
                     scanner.nextLine();
                 }
-                this.currentMachine.collectMoney(amount);
+                if (amount == 0) {
+                    continue;
+                } else {
+                    this.currentMachine.collectMoney(amount);
+                }
+
             } else if (input.equals("4")) {
                 this.currentMachine.displayMoneyBox();
-                System.out.println("Please enter the denomination you would like to replenish (Press 1 to exit):");
+                System.out.println("Please enter the denomination you would like to replenish (Press 0 to exit):");
                 int denomination = scanner.nextInt();
                 scanner.nextLine();
-                while (!this.currentMachine.getMoneyBox().getAvailableDenominations().contains(denomination) && denomination != 1) {
+                ArrayList<Integer> availableDenominationsExceptOne = new ArrayList<>(this.currentMachine.getMoneyBox().getAvailableDenominations());
+                availableDenominationsExceptOne.remove(Integer.valueOf(1));
+
+                while (!availableDenominationsExceptOne.contains(denomination) && denomination != 0) {
                     System.out.println("Invalid denomination, please enter a valid denomination:");
                     denomination = scanner.nextInt();
                     scanner.nextLine();
                 }
-                if (denomination == 1) {
+                if (denomination == 0) {
                     continue;
                 } else {
-                    System.out.println("Please enter the quantity of " + denomination + " peso bills you would like to replenish:");
+                    System.out.println("Please enter the quantity of " + denomination + " you would like to replenish:");
                     int quantity = scanner.nextInt();
                     scanner.nextLine();
                     while (quantity < 0) {
