@@ -280,4 +280,5 @@ public class VendingMachine {
     public void displayTransactionSummary() {
         manager.displayTransactionSummary();
     }
+
 }

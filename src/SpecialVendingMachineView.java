@@ -4,13 +4,13 @@ import java.util.*;
 /**
  * The Interface class represents the user interface for interacting with the vending machine.
  */
-public class Interface {
-    VendingMachine currentMachine = null;
+public class SpecialVendingMachineView {
+    SpecialVendingMachine currentMachine = null;
 
     /**
      * Constructs an Interface object.
      */
-    public Interface() {
+    public SpecialVendingMachineView() {
     }
 
     /**
@@ -18,7 +18,7 @@ public class Interface {
      */
     public void createVendingMachine() {
         Scanner scanner = new Scanner(System.in);
-        this.currentMachine = new VendingMachine();
+        this.currentMachine = new SpecialVendingMachine();
         int slotCount = 0;
         while (true) {
             try {
@@ -125,7 +125,8 @@ public class Interface {
         while (true) {
             System.out.println("Please select an option:");
             System.out.println("1. Purchase an item from the vending machine");
-            System.out.println("2. Exit");
+            System.out.println("2. Purchase a customizable smoothie");
+            System.out.println("3. Exit");
             input = scanner.nextLine();
 
             if (input.equals("1")) {
@@ -159,22 +160,22 @@ public class Interface {
                             paymentValid = true;
                             if (this.currentMachine.purchaseItem(name, payment)) {
                                 System.out.println("Purchase successful! Enjoy your " + name + ".");
-                                int change = payment - (int)this.currentMachine.getItemPrice(name);
+                                int change = payment - (int) this.currentMachine.getItemPrice(name);
                                 ArrayList<Integer> changeList = this.currentMachine.getChange(change);
                                 ArrayList<Integer> denominations = this.currentMachine.getMoneyBox().getAvailableDenominations();
                                 //check if changeList mapped to denominations is equal to change
                                 int total = 0;
-                                for (int i = 0; i < changeList.size(); i++){
+                                for (int i = 0; i < changeList.size(); i++) {
                                     total += changeList.get(i) * denominations.get(i);
                                 }
-                                if (total == change){
+                                if (total == change) {
                                     System.out.println("Your change is: ");
-                                    for (int i = 0; i < changeList.size(); i++){
-                                        if(changeList.get(i) != 0){
+                                    for (int i = 0; i < changeList.size(); i++) {
+                                        if (changeList.get(i) != 0) {
                                             System.out.println(changeList.get(i) + " " + denominations.get(i) + " peso bills");
                                         }
                                     }
-                                    }
+                                }
                             } else {
                                 System.out.println("Insufficient funds. Please enter a payment amount greater than or equal to " + price + ":");
                                 paymentValid = false;
@@ -186,6 +187,83 @@ public class Interface {
                     }
                 }
             } else if (input.equals("2")) {
+                // Purchase a customizable product
+                this.currentMachine.displayCustomizableProducts();
+                System.out.println("Please enter the index of the customizable product you would like to purchase (Press 0 to exit):");
+                int productIndex = scanner.nextInt();
+                scanner.nextLine();
+                if (productIndex == 0) {
+                    continue;
+                } else if (productIndex >= 1 && productIndex <= this.currentMachine.getCustomizableProducts().size()) {
+                    Smoothie product = this.currentMachine.getCustomizableProducts().get(productIndex - 1);
+                    System.out.println("Customizable Product: " + product.getName() + " (Price: " + product.getPrice() + ")");
+
+                    this.currentMachine.displayCustomizableIngredients();
+                    System.out.println("Please enter the indices of the ingredients you want to include (separated by commas):");
+                    String ingredientIndicesInput = scanner.nextLine();
+                    String[] chosenIndices = ingredientIndicesInput.split(",");
+                    ArrayList<Integer> chosenIngredients = new ArrayList<>();
+                    for (String index : chosenIndices) {
+                        try {
+                            int ingredientIndex = Integer.parseInt(index.trim());
+                            if (ingredientIndex >= 1 && ingredientIndex <= this.currentMachine.getCustomizableIngredients().size()) {
+                                chosenIngredients.add(ingredientIndex);
+                            } else {
+                                System.out.println("Invalid ingredient index: " + index);
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid ingredient index: " + index);
+                        }
+                    }
+                    if (chosenIngredients.size() > 0) {
+                        // Calculate the total price of the customizable smoothie
+                        double totalPrice = product.getPrice();
+                        for (Integer ingredientIndex : chosenIngredients) {
+                            Fruit ingredient = this.currentMachine.getCustomizableIngredients().get(ingredientIndex - 1);
+                            totalPrice += ingredient.getPrice();
+                        }
+
+                        System.out.println("Total Price: " + totalPrice);
+
+                        while (true) {
+                            System.out.println("Please enter your payment amount: ");
+                            int payment = scanner.nextInt();
+                            scanner.nextLine();
+
+                            if (payment < totalPrice) {
+                                System.out.println("Insufficient payment, please enter a higher amount.");
+                            } else {
+                                if (this.currentMachine.prepareCustomizableProduct(productIndex, chosenIngredients, payment)) {
+                                    System.out.println("Smoothie prepared successfully!");
+
+                                    // Calculate and display the change to the user
+                                    double change = payment - totalPrice;
+                                    ArrayList<Integer> changeList = this.currentMachine.getChange((int) change);
+                                    ArrayList<Integer> denominations = this.currentMachine.getMoneyBox().getAvailableDenominations();
+                                    int totalChange = 0;
+                                    for (int i = 0; i < changeList.size(); i++) {
+                                        totalChange += changeList.get(i) * denominations.get(i);
+                                    }
+                                    if (totalChange == change) {
+                                        System.out.println("Your change is: ");
+                                        for (int i = 0; i < changeList.size(); i++) {
+                                            if (changeList.get(i) != 0) {
+                                                System.out.println(changeList.get(i) + " " + denominations.get(i) + " peso bills");
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    } else {
+                        System.out.println("No valid ingredients chosen. Purchase canceled.");
+                    }
+                } else {
+                    System.out.println("Invalid product index.");
+                }
+            } else if (input.equals("3")) {
                 System.out.println("Goodbye!");
                 break;
             } else {
@@ -344,7 +422,7 @@ public class Interface {
                 System.out.println("Goodbye!");
                 break;
             } else if (input.equals("5")) {
-                this.currentMachine = new VendingMachine();
+                this.currentMachine = new SpecialVendingMachine();
             } else {
                 System.out.println("Invalid input, please try again.");
             }
