@@ -10,16 +10,17 @@ public class SpecialVendingMachine extends VendingMachine {
 
     public SpecialVendingMachine() {
         super();
-        this.customizableProducts = new ArrayList<>();
-        this.customizableIngredients = new ArrayList<>();
-        customizableIngredients.add(new Fruit("Apple", 95, 1));
-        customizableIngredients.add(new Fruit("Banana", 105, 1));
-        customizableIngredients.add(new Fruit("Orange", 45, 1));
-        customizableIngredients.add(new Fruit("Strawberry", 5, 1));
-        customizableIngredients.add(new Fruit("Blueberry", 20, 1));
-        customizableProducts.add(new Smoothie("Apple ", 95, 10));
-        customizableProducts.add(new Smoothie("Orange" , 45, 15));
-        customizableProducts.add(new Smoothie("Strawberry", 60, 20));
+        // Initialize the customizable ingredients
+        customizableIngredients = new ArrayList<>();
+        customizableIngredients.add(new Fruit("Apple", 95, 1.0));
+        customizableIngredients.add(new Fruit("Orange", 45, 1.0));
+        customizableIngredients.add(new Fruit("Strawberry", 60, 1.0));
+
+        // Initialize the customizable products
+        customizableProducts = new ArrayList<>();
+        customizableProducts.add(new Smoothie("Apple", 50, 20));
+        customizableProducts.add(new Smoothie("Orange", 60, 35));
+        customizableProducts.add(new Smoothie("Strawberry", 80, 50));
     }
 
     // Function to add a customizable product to the vending machine
@@ -69,46 +70,64 @@ public class SpecialVendingMachine extends VendingMachine {
     }
 
     // Function to prepare a customizable product
-    public boolean prepareCustomizableProduct(int productIndex, ArrayList<Integer> chosenIngredients, int payment) {
+    public boolean prepareCustomizableProduct(int productIndex, ArrayList<Integer> chosenFruits, int payment) {
         Smoothie product = this.customizableProducts.get(productIndex - 1);
-        double totalPrice = product.getPrice();
-        ArrayList<String> addOns = new ArrayList<>();
 
         System.out.println("Preparing " + product.getName() + "...");
+        delay(1);
         System.out.println("adding ice to blender...");
+        delay(1);
         System.out.println("adding milk to blender...");
+        delay(1);
 
-        for (Integer ingredientIndex : chosenIngredients) {
-            Fruit ingredient = this.customizableIngredients.get(ingredientIndex - 1);
-            System.out.println("adding " + ingredient.getName() + " to blender...");
-            addOns.add(ingredient.getName());
-            totalPrice += ingredient.getPrice();
+        Smoothie smoothie = new Smoothie(product.getName(), product.getCalories(), product.getPrice());
+        for (Integer fruitIndex : chosenFruits) {
+            Fruit fruit = this.customizableIngredients.get(fruitIndex - 1);
+            System.out.println("adding " + fruit.getName() + " to blender...");
+            delay(1);
+            smoothie.addFruit(fruit);
         }
 
-        if (payment >= totalPrice) {
-            System.out.println(product.getName() + " Smoothie Done!");
-            System.out.println("Add-ons: " + String.join(", ", addOns));
-            System.out.println("Total Price: " + totalPrice);
+        // Calculate the total calories and price of the smoothie
+        int totalCalories = smoothie.getTotalCalories();
+        double totalPrice = smoothie.getTotalPrice();
 
-            int change = payment - (int) totalPrice;
-            ArrayList<Integer> changeList = this.getChange(change);
-            ArrayList<Integer> denominations = this.getMoneyBox().getAvailableDenominations();
-            int total = 0;
-
-            for (int i = 0; i < changeList.size(); i++) {
-                total += changeList.get(i) * denominations.get(i);
+        // Rest of the code remains the same
+        System.out.println("Blending...");
+        delay(1);
+        System.out.println(smoothie.getName() + " Smoothie Done!");
+        System.out.print("Add-ons: ");
+        for (int i = 0; i < chosenFruits.size(); i++) {
+            if (i > 0) {
+                System.out.print(", ");
             }
+            System.out.print(this.customizableIngredients.get(chosenFruits.get(i) - 1).getName());
+        }
+        System.out.println();
 
-            if (total == change) {
-                System.out.println("Your change is: ");
-                for (int i = 0; i < changeList.size(); i++) {
-                    if (changeList.get(i) != 0) {
-                        System.out.println(changeList.get(i) + " " + denominations.get(i) + " peso bills");
-                    }
+        System.out.println("Total Price: " + totalPrice);
+        if (payment < totalPrice) {
+            System.out.println("Insufficient payment, please enter a higher amount.");
+        } else {
+            System.out.println("Smoothie prepared successfully!");
+
+            // Calculate change
+            double change = payment - totalPrice;
+            ArrayList<Integer> changeList = this.getChange((int) change);
+            ArrayList<Integer> denominations = this.getMoneyBox().getAvailableDenominations();
+            int totalChange = 0;
+
+            System.out.println("Your change is: ");
+            for (int i = 0; i < changeList.size(); i++) {
+                if (changeList.get(i) != 0) {
+                    System.out.println(changeList.get(i) + " " + denominations.get(i) + " peso bills");
+                    totalChange += changeList.get(i) * denominations.get(i);
                 }
             }
-        } else {
-            System.out.println("Insufficient payment, please enter a higher amount.");
+
+            if (totalChange < change) {
+                System.out.println((change - totalChange) + " peso in coins");
+            }
         }
         return false;
     }
